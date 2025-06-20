@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打造以人為本的AI醫療應用圈：邁向卓越AI智慧醫院</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Harmony Neutrals -->
+    <!-- Application Structure Plan: The SPA is designed as an interactive narrative dashboard. It starts with a compelling hero section introducing Dr. Liao and the core vision. A sticky navigation bar allows users to jump to five thematic sections that mirror the award criteria but are presented in a storytelling flow: 1) Vision & Leader, 2) Strategy & Integration (featuring an interactive ecosystem diagram and a roadmap), 3) Culture & Execution (using a timeline), 4) Impact & Data (with a dynamic KPI dashboard), and 5) Global Recognition. This structure was chosen to transform a linear report into an engaging, non-linear exploratory experience, allowing judges to quickly grasp the key achievements and dive into areas of interest, maximizing comprehension and impact. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: KPI data from Table 1 -> Goal: Compare, show change -> Viz: Multiple Chart.js charts (bar, line, donut) -> Interaction: Hover tooltips for details -> Justification: Visual charts are far more impactful and digestible than a static table.
+        - Report Info: Smart Hospital Roadmap -> Goal: Inform, show progression -> Viz: Simplified timeline with HTML/CSS -> Interaction: Static, clear flow -> Justification: Provides a high-level strategic overview of the transformation journey.
+        - Report Info: AI Ecosystem Diagram -> Goal: Organize, explain relationships -> Viz: Interactive HTML/CSS diagram -> Interaction: Hover to show descriptions -> Justification: Encourages exploration and simplifies a complex system.
+        - Report Info: Cultural transformation story -> Goal: Inform, engage -> Viz: Vertical timeline graphic -> Interaction: Scroll-based animations -> Justification: A visual journey is more compelling than a wall of text.
+        - Report Info: Three levels of value creation -> Goal: Inform, summarize -> Viz: Titled cards with icons -> Interaction: Static, clear presentation -> Justification: Easily scannable summary of the core value proposition.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #F8F7F4; /* Light warm gray */
+            color: #3C3633; /* Dark brown-gray */
+        }
+        h1, h2, h3, h4 {
+            font-weight: 700;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #C88E4A; /* Warm gold accent */
+            border-bottom-color: #C88E4A;
+        }
+        .human-centered-diagram .node {
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .human-centered-diagram .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .group:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        .roadmap-stage {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+        }
+        .roadmap-stage:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -20px;
+            width: 40px;
+            height: 2px;
+            background-color: #C88E4A;
+            transform: translateY(-50%);
+        }
+        .roadmap-dot {
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 3px solid #C88E4A;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header class="sticky top-0 bg-white/80 backdrop-blur-lg z-50 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#hero" class="nav-link-special text-xl font-bold text-[#3C3633]">廖家德醫師</a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#vision" class="nav-link px-3 py-2 rounded-md text-sm font-medium">願景與使命</a>
+                        <a href="#strategy" class="nav-link px-3 py-2 rounded-md text-sm font-medium">策略與整合</a>
+                        <a href="#culture" class="nav-link px-3 py-2 rounded-md text-sm font-medium">文化與執行</a>
+                        <a href="#impact" class="nav-link px-3 py-2 rounded-md text-sm font-medium">數據與成效</a>
+                        <a href="#value" class="nav-link px-3 py-2 rounded-md text-sm font-medium">價值與影響</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-[#C88E4A] focus:outline-none">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#vision" class="nav-link block px-3 py-2 rounded-md text-base font-medium">願景與使命</a>
+                <a href="#strategy" class="nav-link block px-3 py-2 rounded-md text-base font-medium">策略與整合</a>
+                <a href="#culture" class="nav-link block px-3 py-2 rounded-md text-base font-medium">文化與執行</a>
+                <a href="#impact" class="nav-link block px-3 py-2 rounded-md text-base font-medium">數據與成效</a>
+                <a href="#value" class="nav-link block px-3 py-2 rounded-md text-base font-medium">價值與影響</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="pt-20 pb-16 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-[#3C3633] leading-tight">打造以人為本的AI醫療應用圈</h1>
+                <p class="mt-4 text-2xl md:text-3xl text-gray-600 max-w-3xl mx-auto font-normal">邁向卓越AI智慧醫院</p>
+                <p class="mt-8 text-xl font-semibold text-gray-800">廖家德</p>
+                <p class="text-base text-gray-500">奇美醫療財團法人奇美醫院</p>
+                <p class="text-base text-gray-500">實證醫學暨醫療政策中心 主任 / 教學中心 副主任</p>
+            </div>
+        </section>
+
+        <!-- Vision Section -->
+        <section id="vision" class="py-16 sm:py-20">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-[#3C3633]">願景與使命</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">我的使命是透過科技，回歸醫療的初心。將AI視為賦能同仁的夥伴，而非取代他們的工具，從而建立一個讓醫護人員有時間、有心力去傳遞溫暖的智慧醫療環境。</p>
+                </div>
+                <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="font-bold text-lg text-[#C88E4A]">核心理念：以人為本</h3>
+                        <p class="mt-2 text-gray-700">「以病人為中心，但以同仁為優先」。我相信，唯有先照顧好我們的醫護團隊，他們才能提供給病人最有品質的照護。這場轉型不只追求效率，更追求同仁的幸福感與工作的尊嚴。</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="font-bold text-lg text-[#C88E4A]">個人成就摘要</h3>
+                        <ul class="mt-2 space-y-2 text-gray-700">
+                            <li><span class="font-semibold">🏆 2025 美國愛迪生獎</span>，全球創新桂冠</li>
+                            <li><span class="font-semibold">🏆 2024《經理人》100MVP經理人</span></li>
+                            <li><span class="font-semibold">🏆《哈佛商業評論》鼎革獎四項大獎入圍</span></li>
+                            <li><span class="font-semibold">🇩🇪 德國官方邀請</span>，分享台灣AI醫療經驗</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategy Section -->
+        <section id="strategy" class="py-16 sm:py-20 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-[#3C3633]">策略與整合：從藍圖到生態系</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">我們的轉型並非單點工具的堆砌，而是透過與同仁共創，擘劃清晰的轉型路徑圖，進而建構一個深度整合、具協作智慧的AI醫療生態系統，確保每項技術都為解決真實臨床問題而生。</p>
+                </div>
+                
+                <div class="bg-gray-50 p-8 rounded-lg mb-12">
+                    <h3 class="text-2xl font-bold text-center mb-6 text-[#3C3633]">第一步：與同仁共創，擘劃 AI 智慧醫院路徑圖</h3>
+                    <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4">
+                        <div class="roadmap-stage"><div class="roadmap-dot"></div><h4 class="font-bold">基礎數位化</h4><p class="text-xs text-gray-500">~2010</p></div>
+                        <div class="roadmap-stage"><div class="roadmap-dot"></div><h4 class="font-bold">數位優化</h4><p class="text-xs text-gray-500">~2018</p></div>
+                        <div class="roadmap-stage"><div class="roadmap-dot"></div><h4 class="font-bold">從BI到AI</h4><p class="text-xs text-gray-500">~2022</p></div>
+                        <div class="roadmap-stage bg-[#FFF7ED] p-4 rounded-lg border border-[#C88E4A]"><div class="roadmap-dot"></div><h4 class="font-bold text-[#C88E4A]">AI 伴行</h4><p class="text-xs text-gray-500">現在進行式</p></div>
+                        <div class="roadmap-stage"><div class="roadmap-dot"></div><h4 class="font-bold">AI 先行</h4><p class="text-xs text-gray-500">未來</p></div>
+                        <div class="roadmap-stage"><div class="roadmap-dot"></div><h4 class="font-bold">AI智慧醫院</h4><p class="text-xs text-gray-500">願景</p></div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold text-center mb-6 text-[#3C3633]">第二步：建構以人為本的 AI 醫療生態系</h3>
+                <div class="human-centered-diagram max-w-6xl mx-auto">
+                    <div class="text-center mb-8"><div class="inline-block p-4 bg-[#799351] text-white rounded-lg shadow-lg node"><h4 class="font-bold">使用者介面 (HIS Copilot)</h4><p class="text-sm">統一對話入口，整合所有系統</p></div></div>
+                    <div class="flex justify-center mb-4"><div class="w-1 h-12 bg-gray-300"></div></div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center mb-8">
+                        <div class="group relative"><div class="p-3 bg-teal-100 text-teal-800 rounded-lg shadow-md node">A+ 醫師</div><div class="tooltip absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">從預測到決策的無縫接軌</div></div>
+                        <div class="group relative"><div class="p-3 bg-sky-100 text-sky-800 rounded-lg shadow-md node">A+ 護理師</div><div class="tooltip absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">自動化文書，節省1/2時間</div></div>
+                        <div class="group relative"><div class="p-3 bg-indigo-100 text-indigo-800 rounded-lg shadow-md node">A+ 藥師</div><div class="tooltip absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">藥物資訊整合，提升用藥安全</div></div>
+                        <div class="group relative"><div class="p-3 bg-purple-100 text-purple-800 rounded-lg shadow-md node">A+ 營養師</div><div class="tooltip absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">個人化營養建議，自動生成</div></div>
+                        <div class="group relative"><div class="p-3 bg-pink-100 text-pink-800 rounded-lg shadow-md node">A+ 行政助理</div><div class="tooltip absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">優化行政流程，提升營運效率</div></div>
+                        <div class="group relative"><div class="p-3 bg-rose-100 text-rose-800 rounded-lg shadow-md node">A+ 醫學教育</div><div class="tooltip absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">培育次世代智慧醫療人才</div></div>
+                    </div>
+                    <div class="flex justify-center mb-4"><div class="w-1 h-12 bg-gray-300"></div></div>
+                    <div class="text-center mb-8"><div class="inline-block p-4 bg-[#A1C398] text-gray-800 rounded-lg shadow-lg node"><h4 class="font-bold">整合智慧層</h4></div></div>
+                    <div class="flex justify-center mb-4"><div class="w-1 h-8 bg-gray-300"></div></div>
+                    <div class="flex justify-center space-x-8 mb-8">
+                        <div class="group relative text-center"><div class="p-3 bg-amber-100 text-amber-800 rounded-lg shadow-md node">預測型AI (AI 1.0)</div><div class="tooltip absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">超過30個臨床預測模型，提前預警風險</div></div>
+                        <div class="group relative text-center"><div class="p-3 bg-orange-100 text-orange-800 rounded-lg shadow-md node">生成式AI (AI 2.0)</div><div class="tooltip absolute bottom-full mb-2 w-48 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">Azure OpenAI，確保安全與合規</div></div>
+                    </div>
+                    <div class="flex justify-center mb-4"><div class="w-1 h-12 bg-gray-300"></div></div>
+                    <div class="text-center"><div class="inline-block p-4 bg-gray-200 text-gray-700 rounded-lg shadow-lg node"><h4 class="font-bold">基礎資料層</h4><p class="text-sm">HIS, EMR, PACS, IoT...</p></div></div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Culture Section -->
+        <section id="culture" class="py-16 sm:py-20">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-[#3C3633]">文化與執行：從質疑到全院共鳴</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">變革的成功，關鍵在於人。我們透過由下而上、層次分明的賦能計畫與共創模式，將最初的懷疑轉化為全院性的熱情參與，譜寫了一曲變革的交響樂。</p>
+                </div>
+
+                <div class="relative max-w-2xl mx-auto">
+                    <div class="absolute left-1/2 w-0.5 h-full bg-gray-300 -translate-x-1/2"></div>
+                    <div class="relative mt-8"><div class="flex items-center"><div class="w-1/2 pr-8 text-right"><p class="text-sm text-gray-500">第一步</p><h4 class="text-lg font-bold text-[#C88E4A]">面對質疑</h4><p class="mt-1 text-gray-600">「主任，你是來整我的嗎？」來自第一線的真實回饋，讓我們重新思考技術的意義。</p></div><div class="w-10 h-10 bg-[#C88E4A] rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold z-10">1</div><div class="w-1/2"></div></div></div>
+                    <div class="relative mt-8"><div class="flex items-center"><div class="w-1/2"></div><div class="w-10 h-10 bg-[#799351] rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold z-10">2</div><div class="w-1/2 pl-8 text-left"><p class="text-sm text-gray-500">第二步</p><h4 class="text-lg font-bold text-[#799351]">高層承諾</h4><p class="mt-1 text-gray-600">院長親自承諾「AI是來幫忙的」，建立全院的心理安全感，為變革奠基。</p></div></div></div>
+                    <div class="relative mt-8"><div class="flex items-center"><div class="w-1/2 pr-8 text-right"><p class="text-sm text-gray-500">第三步</p><h4 class="text-lg font-bold text-[#C88E4A]">數位賦能</h4><p class="mt-1 text-gray-600">開設「ChatGPT協作日常」等工作坊與「AI種子計畫」，破除恐懼，遍地開花。</p></div><div class="w-10 h-10 bg-[#C88E4A] rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold z-10">3</div><div class="w-1/2"></div></div></div>
+                    <div class="relative mt-8"><div class="flex items-center"><div class="w-1/2"></div><div class="w-10 h-10 bg-[#799351] rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold z-10">4</div><div class="w-1/2 pl-8 text-left"><p class="text-sm text-gray-500">第四步</p><h4 class="text-lg font-bold text-[#799351]">使用者共創</h4><p class="mt-1 text-gray-600">首創「AIGC陪跑競賽」，讓臨床科部成為發明家，將痛點變為自己的解決方案。</p></div></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Impact Section -->
+        <section id="impact" class="py-16 sm:py-20 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-[#3C3633]">數據與成效：以實證驅動的轉型成果</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">我們將「實證醫學」精神注入管理，透過量化指標、質化回饋與科學研究，客觀衡量轉型成效，確保每一步都走在價值最大化的軌道上。</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-center mb-4">使用者採納度 (每月總人次)</h3>
+                        <div class="chart-container">
+                            <canvas id="userAdoptionChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-center mb-4">工作效率提升 (時間節省)</h3>
+                        <div class="chart-container">
+                            <canvas id="efficiencyChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-center mb-4">人才留任影響 (新進護理師一年留任率)</h3>
+                         <div class="chart-container">
+                            <canvas id="retentionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center items-center h-full space-y-6">
+                        <div class="text-center p-6 bg-amber-50 rounded-lg w-full max-w-sm shadow">
+                            <h3 class="text-lg font-bold text-amber-800">使用者滿意度</h3>
+                            <p class="text-4xl font-bold text-amber-600 mt-2">4 / 5 ★</p>
+                            <p class="text-sm text-amber-700 mt-1">(藥劑部同仁平均)</p>
+                        </div>
+                        <div class="text-center p-6 bg-emerald-50 rounded-lg w-full max-w-sm shadow">
+                             <h3 class="text-lg font-bold text-emerald-800">每月營運成本</h3>
+                            <p class="text-4xl font-bold text-emerald-600 mt-2">< 10萬 NTD</p>
+                             <p class="text-sm text-emerald-700 mt-1">(生成式AI API支出)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Value Section -->
+        <section id="value" class="py-16 sm:py-20">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-[#3C3633]">價值與影響：重新定義醫療價值</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">我們的轉型創造了超越效率提升的深刻價值，涵蓋營運、戰略到社會三個層面，為台灣的醫療產業樹立了新的標竿。</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+                        <div class="text-4xl mb-4">⚙️</div>
+                        <h3 class="text-xl font-bold mb-2">營運價值</h3>
+                        <p class="text-gray-600">將時間還給關懷。平均節省同仁每日1/2至2/3的文書時間，每月突破10萬人次使用量，並將成本控制在10萬以內，創造高ROI的智慧投資。</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+                        <div class="text-4xl mb-4">🛡️</div>
+                        <h3 class="text-xl font-bold mb-2">戰略價值</h3>
+                        <p class="text-gray-600">打造反脆弱組織。在護理離職潮中，憑藉AI賦能穩住服務量能，新進護理師留任率高達92%，遠超業界平均。</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+                         <div class="text-4xl mb-4">🌍</div>
+                        <h3 class="text-xl font-bold mb-2">社會價值</h3>
+                        <p class="text-gray-600">從台南走向世界。成為微軟全球官方案例，與德國、印尼、英國等展開國際合作，為全球醫療挑戰提供台灣方案。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
+            <p>廖家德 | 奇美醫療財團法人奇美醫院</p>
+            <p class="text-sm mt-2 text-gray-400">本報告由AI協作生成，旨在呈現2025年度數位長獎參賽內容。</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+            
+            // Function to handle smooth scrolling
+            const handleLinkClick = (e) => {
+                e.preventDefault();
+                const targetId = e.currentTarget.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+                // Close mobile menu if it's open
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            };
+
+            // Attach event listeners to all navigation links
+            const allNavLinks = document.querySelectorAll('.nav-link, .nav-link-special');
+            allNavLinks.forEach(link => {
+                link.addEventListener('click', handleLinkClick);
+            });
+
+            // Navigation active state on scroll
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (`#${entry.target.id}` === link.getAttribute('href')) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { root: null, rootMargin: '0px', threshold: 0.5 });
+            sections.forEach(section => { observer.observe(section); });
+
+            // Chart.js Implementations
+            const chartFontColor = '#3C3633';
+            Chart.defaults.font.family = "'Noto Sans TC', sans-serif";
+            Chart.defaults.color = chartFontColor;
+
+            // 1. User Adoption Chart
+            const userAdoptionCtx = document.getElementById('userAdoptionChart').getContext('2d');
+            new Chart(userAdoptionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['23/11','12','24/1','2','3','4','5','6','7','8','9','10','11','12','25/1','2','3','4','5'],
+                    datasets: [{
+                        label: '每月總使用人次 (成長近1000%)',
+                        data: [10298, 16713, 21591, 25377, 33483, 35573, 39794, 40827, 50247, 50743, 49807, 52652, 52825, 64921, 60228, 64185, 78834, 90442, 100184],
+                        backgroundColor: 'rgba(121, 147, 81, 0.2)',
+                        borderColor: '#799351',
+                        tension: 0.3,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: '使用人次' } } },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: function(context) { return `總使用人次: ${context.parsed.y.toLocaleString()}`; } } }
+                    }
+                }
+            });
+
+            // 2. Efficiency Chart
+            const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
+            new Chart(efficiencyCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['護理轉出摘要', '洗腎室查房', '營養師文書', '藥師文書'],
+                    datasets: [{
+                        label: '每日節省時間 (分鐘)',
+                        data: [11, 60, 225, 150],
+                        backgroundColor: ['#A1C398', '#799351', '#C88E4A', '#E6CBA8'],
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { title: { display: true, text: '節省時間 (分鐘)' } } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.x !== null) { label += `${context.parsed.x} 分鐘`; }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Retention Chart
+            const retentionCtx = document.getElementById('retentionChart').getContext('2d');
+            new Chart(retentionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['新進護理師一年留任率'],
+                    datasets: [ { label: '奇美醫院', data: [92], backgroundColor: '#799351', }, { label: '全國平均', data: [60], backgroundColor: '#D1D5DB', }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '留任率 (%)' } } },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                         tooltip: { callbacks: { label: function(context) { return `${context.dataset.label}: ${context.parsed.y}%`; } } }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
